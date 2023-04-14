@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF Overlay Example</title>
+  <!-- Include the pdf-lib library -->
+  <script src="https://unpkg.com/pdf-lib"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      color: #7F8288;
+      background-color: #2C313D;
+      font-family: 'Nunito', sans-serif;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      margin-top: 0;
+      line-height: 1.2;
+    }
+    .text-primary {
+      color: #efefef;
+    }
+
+    .content-wrapper {
+      width: 1000px;
+      height: 80vh;
+      padding: 25px;
+      display: flex;
+      align-items: center;
+    }
+    .content-wrapper > * {
+      flex: 1 1 0px;
+    }
+    .content-wrapper .details {
+      max-width: 35%;
+      padding-right: 25px;
+    }
+    .content-wrapper .uploader {
+      padding-left: 25px;
+    }
+
+    .drop-container {
+      min-height: 350px;
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 
+        0 0 4px #000,
+        0 0 16px 12px rgba(0, 0, 0, .15);
+    }
+    .drop-zone {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+      padding: 25px;
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='10' ry='10' stroke='%235B5B5BFF' stroke-width='5' stroke-dasharray='10%2c 12' stroke-dashoffset='5' stroke-linecap='butt'/%3e%3c/svg%3e");
+      border-radius: 10px;
+      transition: background-color 0.2s ease;
+    }
+    .drop-zone:hover {
+      background-color: #272A37;
+    }
+    .logo, .logo::before {
+      height: 65px;
+      width: 50px;
+      border-radius: 5px;
+    }
+    .logo {
+      position: relative;
+      margin: 0 0 40px -20px;
+      background-color: #3F444E;
+    }
+    .logo::before {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background-color: #B3B5B6;
+    }
+
+    button {
+      outline: none;
+      border: none;
+      margin: 10px 0 0 0;
+      padding: 12px 24px;
+      font-size: 1em;
+      color: #eee;
+      background-color: #045EE3;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1000px) {
+      .content-wrapper {
+        height: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 25px;
+      }
+      .content-wrapper > * {
+        flex: unset;
+      }
+      .content-wrapper .details {
+        max-width: 100%;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+      .content-wrapper .uploader {
+        padding: 0;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="content-wrapper">
+    <div class="details">
+      <h1 class="text-primary">Customize your Invoice/Quote PDF</h1>
+      <p>
+        With our easy-to-use pdf template tool, you can now effortlessly customize your invoice or
+        quote to match your desired template.
+      </p>
+
+      <p>
+        Simply drag & drop your file or click the "Upload" button
+        to apply the changes to your PDF file.
+      </p>
+
+      <!-- <button></button> -->
+    </div>
+
+    <div class="uploader">
+      <div class="drop-container">
+        <div class="drop-zone">
+          <div class="logo"></div>
+          <div class="drop-zone__prompt text-primary">Drop your file here</div>
+          <div class="drop-zone__prompt">or</div>
+          <button class="primary js-upload">Upload PDF</button>
+          <input type="file" id="fileInput" style="visibility: hidden">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <script>
+    // Get the file input element from your HTML
+    const fileInput = document.getElementById('fileInput');
+    const uploadButton = document.querySelector('.js-upload');
+
+    uploadButton.addEventListener('click', () => fileInput.click());
+
+    // Add an event listener to listen for when a file is selected by the user
+    fileInput.addEventListener('change', async (event) => {
+      // Get the selected file
+      await loadFiles(event.target.files[0]);
+      console.log('done!');
+
+      fileInput.value = null;
+    });
+
+    // Create a function to handle loading the PDF and image files
+    const loadFiles = async (pdfBlob) => {
+      console.log('starting!');
+
+      // // Fetch the PDF and image files as blobs
+      // const pdfResponse = await fetch(selectedFile);
+      // const pdfBlob = await pdfResponse.blob();
+      const imageResponse = await fetch('./overlay.png');
+      const imageBlob = await imageResponse.blob();
+
+      // Read the blobs as ArrayBuffer using FileReader
+      const pdfArrayBuffer = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsArrayBuffer(pdfBlob);
+      });
+      const imageArrayBuffer = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsArrayBuffer(imageBlob);
+      });
+
+      // Create a PDFDocument object from the PDF bytes
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+
+      // Get the first page of the PDF document
+      const pages = pdfDoc.getPages();
+      console.log('pages.length:', pages.length);
+      const page = pdfDoc.getPage(0);
+      console.log('page.getWidth():', page.getWidth());
+      console.log('page.getHeight():', page.getHeight());
+
+      // Convert the image bytes to an image object
+      const image = await pdfDoc.embedPng(imageArrayBuffer);
+
+      // Set the position and size of the image on the page
+        const x = 0; // X-coordinate of the image
+        const y = 0; // Y-coordinate of the image
+        const width = page.getWidth(); // Width of the image, set to the width of the page
+        const height = page.getHeight(); // Height of the image, set to the height of the page
+
+      // Draw the image on the page
+      page.drawImage(image, {
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        opacity: 1, // Opacity of the image (0 to 1)
+      });
+
+      // Save the modified PDF as a new PDF file
+      const pdfBytesWithOverlay = await pdfDoc.save();
+
+      // Optionally, you can download the PDF file in the browser
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(new Blob([pdfBytesWithOverlay], { type: 'application/pdf' }));
+      downloadLink.download = `${pdfBlob.name}`;
+      downloadLink.click();
+
+      // Open the file in a new tab
+      const newTab = window.open(downloadLink.href, '_blank');
+    };
+  </script>
+</body>
+</html>
