@@ -159,19 +159,30 @@
 
   <script>
     // Get the file input element from your HTML
-    const fileInput = document.getElementById('fileInput');
     const uploadButton = document.querySelector('.js-upload');
+    const dropZone = document.querySelector('.uploader');
+    const fileInput = document.getElementById('fileInput');
 
     uploadButton.addEventListener('click', () => fileInput.click());
 
+    // Add a drag-and-drop event listener to the drop-zone element
+    dropZone.addEventListener('dragover', (event) => event.preventDefault());
+    dropZone.addEventListener('drop', (event) => {
+      console.log('dropped!', event.dataTransfer.files[0]);
+      event.preventDefault(); // Prevent default behavior of drop event
+      const file = event.dataTransfer.files[0];
+      if (file.type === 'application/pdf') loadFiles(file);
+      else alert('Please drop a PDF file.');
+    });
+
     // Add an event listener to listen for when a file is selected by the user
     fileInput.addEventListener('change', async (event) => {
-      // Get the selected file
+      console.log('changed!');
       await loadFiles(event.target.files[0]);
-      console.log('done!');
-
       fileInput.value = null;
     });
+
+
 
     // Create a function to handle loading the PDF and image files
     const loadFiles = async (pdfBlob) => {
