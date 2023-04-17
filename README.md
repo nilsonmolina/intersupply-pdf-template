@@ -1,8 +1,8 @@
 # intersupply-pdf-template
 
-Site: https://nilsonmolina.github.io/intersupply-pdf-template/  
-Custom Domain: intersupply.us.to  
-Analytics: https://analytics.umami.is/dashboard  
+**Site:**           https://nilsonmolina.github.io/intersupply-pdf-template/  
+**Custom Domain:**  https://intersupply.us.to  
+**Analytics:**      https://analytics.umami.is/dashboard  
 
 Customer requested a custom invoice template. This was a quick solution I came up with, where the user
 could select their existing invoice and this would overlay their requested styles on top of the invoice.
@@ -16,7 +16,7 @@ traffic to this free and SSL secured Github Pages instance. I also added analyti
 tracking button click vs drag/drop. Mainly wanted to see if the client was even using this as they said
 this was "imperative" to their business, but they did not want to pay me at all -.-
 
-*NOTE: I should probably clean up the code, but needed this up and running fast
+*NOTE: I should probably clean up the code, but needed a quick turnaround for this one.
 
 
 **Site**  
