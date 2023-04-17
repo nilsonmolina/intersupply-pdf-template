@@ -1,8 +1,8 @@
 # intersupply-pdf-template
 
-Site: https://nilsonmolina.github.io/intersupply-pdf-template/
-Custom Domain: intersupply.us.to
-Analytics: https://analytics.umami.is/dashboard
+Site: https://nilsonmolina.github.io/intersupply-pdf-template/  
+Custom Domain: intersupply.us.to  
+Analytics: https://analytics.umami.is/dashboard  
 
 Customer requested a custom invoice template. This was a quick solution I came up with, where the user
 could select their existing invoice and this would overlay their requested styles on top of the invoice.
