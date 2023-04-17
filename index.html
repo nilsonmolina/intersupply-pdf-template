@@ -72,6 +72,7 @@
     .drop-zone:hover {
       background-color: #272A37;
     }
+    /* Logo Default */
     .logo, .logo::before {
       height: 65px;
       width: 50px;
@@ -88,6 +89,62 @@
       top: 15px;
       left: 15px;
       background-color: #B3B5B6;
+    }
+
+    /* Logo Dragover */
+    .dragover .logo, .dragover .logo::before {
+      height: 65px;
+      width: 50px;
+      border-radius: 5px;
+    }
+    .dragover .logo {
+      position: relative;
+      margin: 0 0 40px -20px;
+      background-color: #3F444E;
+    }
+    .dragover .logo::before {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background-color: #B3B5B6;
+    }
+
+    /* Logo Loading */
+    .loading .drop-zone {
+      position: relative;
+    }
+    .loading .logo {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0;
+      background-color: #2C313D;
+    }
+    .loading .logo::before {
+      height: 50px;
+      width: 50px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      border-radius: 50%;
+      border: 5px solid #B3B5B6;
+      border-bottom-color: transparent;
+      background-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
     }
 
     button {
@@ -149,6 +206,7 @@
           <div class="drop-zone__prompt text-primary">Drop your file here</div>
           <div class="drop-zone__prompt">or</div>
           <button class="primary js-upload">Upload PDF</button>
+
           <input type="file" id="fileInput" accept=".pdf" style="visibility: hidden">
         </div>
       </div>
@@ -166,12 +224,20 @@
     uploadButton.addEventListener('click', () => fileInput.click());
 
     // Add a drag-and-drop event listener to the drop-zone element
-    dropZone.addEventListener('dragover', (event) => event.preventDefault());
-    dropZone.addEventListener('drop', (event) => {
+    dropZone.addEventListener('dragover', (event) => { 
+      event.preventDefault()
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragend', (event) => {
+      event.preventDefault()
+      dropZone.classList.remove('dragover');
+      dropZone.classList.add('loading');
+    });
+    dropZone.addEventListener('drop', async (event) => {
       console.log('dropped!', event.dataTransfer.files[0]);
       event.preventDefault(); // Prevent default behavior of drop event
       const file = event.dataTransfer.files[0];
-      if (file.type === 'application/pdf') loadFiles(file);
+      if (file.type === 'application/pdf') await loadFiles(file);
       else alert('Please drop a PDF file.');
     });
 
@@ -182,69 +248,80 @@
       fileInput.value = null;
     });
 
-
-
     // Create a function to handle loading the PDF and image files
     const loadFiles = async (pdfBlob) => {
       console.log('starting!');
 
-      // // Fetch the PDF and image files as blobs
-      // const pdfResponse = await fetch(selectedFile);
-      // const pdfBlob = await pdfResponse.blob();
-      const imageResponse = await fetch('./overlay.png');
-      const imageBlob = await imageResponse.blob();
+      dropZone.classList.remove('dragover');
+      dropZone.classList.add('loading');
 
-      // Read the blobs as ArrayBuffer using FileReader
-      const pdfArrayBuffer = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsArrayBuffer(pdfBlob);
-      });
-      const imageArrayBuffer = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsArrayBuffer(imageBlob);
-      });
+      try {
+         // Fetch the overlay files as blobs
+        const overlayResponse = await fetch('./overlay.png');
+        const overlayBlob = await overlayResponse.blob();
+        const footerResponse = await fetch('./overlay-footer.png');
+        const footerBlob = await footerResponse.blob();
 
-      // Create a PDFDocument object from the PDF bytes
-      const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+        // Read the blobs as ArrayBuffer using FileReader
+        const pdfArrayBuffer = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsArrayBuffer(pdfBlob);
+        });
+        const overlayArrayBuffer = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsArrayBuffer(overlayBlob);
+        });
+        const footerArrayBuffer = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsArrayBuffer(footerBlob);
+        });
 
-      // Get the first page of the PDF document
-      const pages = pdfDoc.getPages();
-      console.log('pages.length:', pages.length);
-      const page = pdfDoc.getPage(0);
-      console.log('page.getWidth():', page.getWidth());
-      console.log('page.getHeight():', page.getHeight());
+        // Create a PDFDocument object from the PDF bytes
+        const pdfDoc = await PDFLib.PDFDocument.load(pdfArrayBuffer);
+        const pages = pdfDoc.getPages();
+    
+        // Convert the image bytes to an image object
+        const page = pdfDoc.getPage(0);
+        const overlay = await pdfDoc.embedPng(overlayArrayBuffer);
+        const footer = await pdfDoc.embedPng(footerArrayBuffer);
 
-      // Convert the image bytes to an image object
-      const image = await pdfDoc.embedPng(imageArrayBuffer);
+        // Draw the header overlay on the page
+        const { width, height } = page.getSize();
+        page.drawImage(overlay, { x: 0, y: 0, width: width, height: height, opacity: 1 });
 
-      // Set the position and size of the image on the page
-        const x = 0; // X-coordinate of the image
-        const y = 0; // Y-coordinate of the image
-        const width = page.getWidth(); // Width of the image, set to the width of the page
-        const height = page.getHeight(); // Height of the image, set to the height of the page
+        // Loop through each 
+        for (let i = 0; i < pages.length; i++) {
+          const page = pdfDoc.getPage(i);
 
-      // Draw the image on the page
-      page.drawImage(image, {
-        x: x,
-        y: y,
-        width: width,
-        height: height,
-        opacity: 1, // Opacity of the image (0 to 1)
-      });
+          // Draw the header overlay on the page
+          const { width, height } = page.getSize();
+          page.drawImage(footer, { x: 0, y: 0, width: width, height: height, opacity: 1 });
 
-      // Save the modified PDF as a new PDF file
-      const pdfBytesWithOverlay = await pdfDoc.save();
+          // Add the page number
+          page.drawText((i + 1).toString(), { x: width - 43, y: 29, size: 7 });
+        }
 
-      // Optionally, you can download the PDF file in the browser
-      const downloadLink = document.createElement('a');
-      downloadLink.href = URL.createObjectURL(new Blob([pdfBytesWithOverlay], { type: 'application/pdf' }));
-      downloadLink.download = `${pdfBlob.name}`;
-      downloadLink.click();
+        // Save the modified PDF as a new PDF file
+        const pdfBytesWithOverlay = await pdfDoc.save();
 
-      // Open the file in a new tab
-      const newTab = window.open(downloadLink.href, '_blank');
+        // Optionally, you can download the PDF file in the browser
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(new Blob([pdfBytesWithOverlay], { type: 'application/pdf' }));
+        downloadLink.download = `${pdfBlob.name}`;
+        downloadLink.click();
+
+        // Open the file in a new tab
+        const newTab = window.open(downloadLink.href, '_blank');
+
+      } catch {
+        alert('Failed to apply custom template to the provided PDF file.');
+
+      } finally {
+        dropZone.classList.remove('loading');
+      }
     };
   </script>
 </body>
