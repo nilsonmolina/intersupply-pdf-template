@@ -1,7 +1,7 @@
 # intersupply-pdf-template
 
 **Site:**           https://nilsonmolina.github.io/intersupply-pdf-template/  
-**Custom Domain:**  https://intersupply.us.to  
+**Custom Domain:**  http://intersupply.us.to  
 **Analytics:**      https://analytics.umami.is/dashboard  
 
 Customer requested a custom invoice template. This was a quick solution I came up with, where the user
