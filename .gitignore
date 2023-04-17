@@ -1,0 +1,7 @@
+# Ignore
+node_modules
+.*
+
+# Allow
+!.gitignore
+!.eslintrc.js
