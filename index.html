@@ -243,6 +243,8 @@
     dropZone.addEventListener('drop', async (event) => {
       console.log('dropped!', event.dataTransfer.files[0]);
       event.preventDefault(); // Prevent default behavior of drop event
+      window.umami?.track('Drag/Drop');
+
       const file = event.dataTransfer.files[0];
       if (file.type === 'application/pdf') await loadFiles(file);
       else alert('Please drop a PDF file.');
@@ -251,6 +253,7 @@
     // Add an event listener to listen for when a file is selected by the user
     fileInput.addEventListener('change', async (event) => {
       console.log('changed!');
+      window.umami?.track('Upload Button');
       await loadFiles(event.target.files[0]);
       fileInput.value = null;
     });
