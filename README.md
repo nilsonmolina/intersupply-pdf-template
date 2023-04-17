@@ -18,10 +18,12 @@ this was "imperative" to their business, but they did not want to pay me at all 
 
 *NOTE: I should probably clean up the code, but needed this up and running fast
 
-**Site**
 
+**Site**  
+![Picture of site](./_readme_assets/site.png)
 
-**Before**
+**Original Invoice**  
+![Original Invoice](./_readme_assets/before.png)
 
-
-**After**
+**Customized Invoice** - _as per clients request_  
+![Customized Invoice](./_readme_assets/after.png)
